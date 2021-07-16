@@ -60,6 +60,7 @@ function stan_inference(prob::DiffEqBase.DEProblem,t,data,priors = nothing,
   save_idxs !== nothing && length(save_idxs) == 1 ? save_idxs = save_idxs[1] : save_idxs = save_idxs
   length_of_y = length(prob.u0)
   save_idxs = something(save_idxs, 1:length_of_y)
+  
   length_of_params = length(vars)
   if isnothing(diffeq_string)
     sys = ModelingToolkit.modelingtoolkitize(prob)
@@ -143,7 +144,6 @@ function stan_inference(prob::DiffEqBase.DEProblem,t,data,priors = nothing,
     end
     parameter_estimation_model = "
     functions {
-      $binsearch_string
       $diffeq_string
     }
     data {
@@ -167,8 +167,11 @@ function stan_inference(prob::DiffEqBase.DEProblem,t,data,priors = nothing,
         }
     }
     "
-    stanmodel = StanSample.SampleModel("parameter_estimation_model", parameter_estimation_model, nchains; printsummary = printsummary, method = StanSample.Sample(;num_samples = num_samples, num_warmup = num_warmup))
+    stanmodel = StanSample.SampleModel("parameter_estimation_model", 
+      parameter_estimation_model, nchains; printsummary = printsummary, 
+      method = StanSample.Sample(;num_samples = num_samples, num_warmup = num_warmup))
   end
+
   parameter_estimation_data = Dict("u0"=>prob.u0, "T" => length(t), "internal_var___u" => view(data, :, 1:length(t))', "t0" => prob.tspan[1], "ts" => t)
   rc = stan_sample(stanmodel; data = parameter_estimation_data)
   if success(rc)
@@ -176,4 +179,5 @@ function stan_inference(prob::DiffEqBase.DEProblem,t,data,priors = nothing,
   else
      rc.err
   end
+
 end

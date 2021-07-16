@@ -1,0 +1,23 @@
+name,Mean,MCSE,StdDev,5%,50%,95%,N_Eff,N_Eff/s,R_hat
+"lp__",69.6614,0.046599,1.77154,66.2068,69.9979,71.8796,1445.27,56.7976,1.00661
+"accept_stat__",0.927079,0.00133176,0.090872,0.73815,0.962264,0.999185,4655.95,182.974,1.00729
+"stepsize__",0.0894582,0.0076601,0.0108493,0.077736,0.0938228,0.10512,2.00602,0.0788343,3.15293e+13
+"treedepth__",4.74975,0.0163776,0.767315,3,5,6,2195.06,86.2635,1.00901
+"n_leapfrog__",38.75,0.504289,19.1541,15,31,63,1442.67,56.6954,1.0125
+"divergent__",0,nan,0,0,0,0,nan,nan,nan
+"energy__",-66.6751,0.0658399,2.46544,-70.0948,-67.0403,-62.0795,1402.2,55.105,1.00446
+"sigma1[1]",0.30,0.00061,0.030,0.26,0.30,0.36,2512,99,1.0
+"sigma1[2]",0.29,0.00056,0.029,0.24,0.28,0.34,2585,102,1.0
+"theta_1",1.5,0.0,0.0,1.5,1.5,1.6,1063.2,41.8,1.0
+"theta_2",1.0,0.0,0.0,1.0,1.0,1.1,1520.8,59.8,1.0
+"theta_3",2.9,0.0,0.1,2.8,2.9,3.0,1105.4,43.4,1.0
+"theta_4",1.0,0.0,0.0,0.9,1.0,1.0,1097.6,43.1,1.0
+# Inference for Stan model: pes4_model
+# 4 chains: each with iter=(1000,1000,1000,1000); warmup=(0,0,0,0); thin=(1,1,1,1); 4000 iterations saved.
+# 
+# Warmup took (7.5, 6.9, 6.9, 6.0) seconds, 27 seconds total
+# Sampling took (6.6, 6.2, 5.7, 6.9) seconds, 25 seconds total
+# Samples were drawn using hmc with nuts.
+# For each parameter, N_Eff is a crude measure of effective sample size,
+# and R_hat is the potential scale reduction factor on split chains (at 
+# convergence, R_hat=1).
