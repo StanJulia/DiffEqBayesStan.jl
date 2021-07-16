@@ -38,14 +38,14 @@ the documentation, which contains the unreleased features.
  tspan = (0.0,10.0)
  prob1 = ODEProblem(f1,u0,tspan,p)
 
- σ = 0.01                         # noise, fixed for now
+ σ = 0.01                              # noise, fixed for now
  t = collect(1.:10.)   # observation times
  sol = solve(prob1,Tsit5())
  priors = [Normal(1.5, 1)]
  randomized = VectorOfArray([(sol(t[i]) + σ * randn(2)) for i in 1:length(t)])
  data = convert(Array,randomized)
  
- using StanSample #required for using the Stan backend
+ using StanSample                      #required for using the Stan backend
  bayesian_result_stan = stan_inference(prob1,t,data,priors)
 
 ```
@@ -60,13 +60,6 @@ of the backends as shown below.
  randomized = VectorOfArray([(sol(t[i]) + σ * randn(1)) for i in 1:length(t)])
  data = convert(Array,randomized)
 
- using CmdStan #required for using the Stan backend
+ using StanSample #required for using the Stan backend
  bayesian_result_stan = stan_inference(prob1,t,data,priors,save_idxs=[1])
-
- bayesian_result_turing = turing_inference(prob1,Tsit5(),t,data,priors,save_idxs=[1])
- 
- using DynamicHMC #required for DynamicHMC backend
- bayesian_result_hmc = dynamichmc_inference(prob1,Tsit5(),t,data,priors,save_idxs = [1])
-
- bayesian_result_abc = abc_inference(prob1,Tsit5(),t,data,priors,save_idxs=[1])
  ```
