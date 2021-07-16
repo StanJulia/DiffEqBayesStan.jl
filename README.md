@@ -10,7 +10,8 @@ This repository is a set of extension functionality for estimating the parameter
 
 This repository is a direct simplification of [DiffEqBayes.jl](). While DiffEqBayes provides and shows how to run the same problem on multiple mcmc implementations available in Julia, this packages only supports Stan.
 
-To begin you first need to add this repository using the following command.
+To begin you first need to add this repository using the following command:
+
 ```julia
 Pkg.add("DiffEqBayesStan")
 using DiffEqBayesStan
