@@ -16,6 +16,8 @@ module DiffEqBayesStan
     include("stan_string.jl")
     include("stan_inference.jl")
 
+    const src_path = @__DIR__
+
     """
 
     # debs_path
