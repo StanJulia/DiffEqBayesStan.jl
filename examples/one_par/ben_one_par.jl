@@ -1,5 +1,6 @@
 # This script will usually fail as Stan gives up when the integration fails.
 
+using MonteCarloMeasurements
 using StanSample, StatsPlots
 
 ProjDir = @__DIR__
@@ -48,8 +49,7 @@ parameters {
 
 transformed parameters {
   real theta[4] = { alpha, beta, gamma, delta };
-  real z[N, 2]
-  = integrate_ode_rk45(dz_dt, z_init, t0, ts, theta,
+  real z[N, 2] = integrate_ode_rk45(dz_dt, z_init, t0, ts, theta,
                        rep_array(0.0, 0), rep_array(0, 0),
                        1e-5, 1e-3, 500);
 }
@@ -67,7 +67,7 @@ model {
 }
 ";
 
-sm = SampleModel("Ben", ben_model, tmpdir="$(@__DIR__)/tmp")
+sm = SampleModel("Ben", ben_model, "$(@__DIR__)/tmp")
 
 obs = reshape([
     2.75487369287842, 6.77861583902452, 0.977380864533721, 
@@ -90,12 +90,11 @@ t = ben_data[:ts]
 plot(xlab="t", ylab="prey and pred")
 plot!(t, obs[:,1], lab="prey")
 plot!(t, obs[:, 2], lab="pred")
-savefig("$(ProjDir)/observations.png")
 
-rc = stan_sample(sm; data=ben_data)
+@time rc = stan_sample(sm; data=ben_data)
 
 if success(rc)
-  p = read_samples(sm, output_format=:particles)
+  p = read_samples(sm, :particles)
   display(p)
 end
 

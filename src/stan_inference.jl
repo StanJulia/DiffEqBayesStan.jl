@@ -49,15 +49,19 @@ function generate_theta(n,priors)
 end
 
 function stan_inference(prob::DiffEqBase.DEProblem,
+    # Positional arguments
     t, data, priors=nothing, stanmodel=nothing;
-    alg = :rk45, num_samples=1000, num_warmup=1000, reltol=1e-3,
-    abstol=1e-6, maxiter=Int(1e5), likelihood=Normal,
-    vars=(StanODEData(), InverseGamma(3,3)), nchains=1,
-    sample_u0=false, save_idxs=nothing, diffeq_string=nothing, 
-    printsummary=true, output_format=:mcmcchains)
-
-    num_chains = nchains
-    print_summary = printsummary
+    # DiffEqBayes keyword arguments
+    likelihood=Normal, vars=(StanODEData(), InverseGamma(3,3)),
+    sample_u0=false, save_idxs=nothing, diffeq_string=nothing,
+    # Stan differential equation function keyword arguments
+    alg = :rk45, reltol=1e-3, abstol=1e-6, maxiter=Int(1e5), 
+    # stan_sample keyword arguments
+    num_samples=1000, num_warmups=1000, num_chains=4, num_threads=4,
+    # read_samples arguments
+    output_format=:mcmcchains,
+    # read_summary arguments
+    print_summary=true)
 
     save_idxs !== nothing && length(save_idxs) == 1 ? save_idxs = save_idxs[1] : save_idxs = save_idxs
     length_of_y = length(prob.u0)
@@ -184,14 +188,13 @@ function stan_inference(prob::DiffEqBase.DEProblem,
             SampleModel("parameter_estimation_model", parameter_estimation_model)
     end
 
-    parameter_estimation_data = Dict(
+    data = Dict(
         "u0"=>prob.u0, "T" => length(t), 
         "internal_var___u" => view(data, :, 1:length(t))', 
         "t0" => prob.tspan[1], "ts" => t)
 
-    rc = stan_sample(stanmodel; data = parameter_estimation_data,
-        num_samples=num_samples, num_warmups=num_warmup,
-        num_chains=num_chains, print_summary=print_summary)
+    @time rc = stan_sample(stanmodel; data, 
+        num_samples, num_warmups, num_chains, num_threads, print_summary)
 
     if success(rc)
         return StanResult(stanmodel, rc, read_samples(stanmodel, output_format))

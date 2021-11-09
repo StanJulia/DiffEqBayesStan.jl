@@ -1,13 +1,13 @@
-using StanSample, DiffEqBayesStan
+using DiffEqBayesStan
 using OrdinaryDiffEq
 using ParameterizedFunctions
 using RecursiveArrayTools
-#using Distributions
-using StatsPlots
+using StatsPlots, Statistics
+using StanSample
 
 ProjDir = @__DIR__
 
-println("Four parameter case")
+println("Four parameter case (using StanLanguage)")
 
 f1 = @ode_def begin
   dx = a*x - b*x*y
@@ -62,12 +62,12 @@ model{
     }
 }";
 
-pes4 = SampleModel("pes4", stan_pes; tmpdir=joinpath(ProjDir, "tmp"))
+pes4 = SampleModel("pes4", stan_pes, joinpath(ProjDir, "tmp"))
 data = (u0=u0, T=size(t, 1), internal_var___u=data_array, t0=0.0, ts=t)
 rc = stan_sample(pes4; data)
 
 if success(rc)
-  df = read_samples(pes4; output_format=:dataframe)
+  df = read_samples(pes4, :dataframe)
   
   println("\ntheta means:\n",
     [mean(df.theta_1), mean(df.theta_2), mean(df.theta_3), mean(df.theta_4)])
@@ -75,7 +75,7 @@ if success(rc)
     [var(df.theta_1), var(df.theta_2), var(df.theta_3), var(df.theta_4)])
   println()
 
-  dfs = read_samples(pes4; output_format=:dataframes)
+  dfs = read_samples(pes4, :dataframes)
   for j in 1:4
     for i in 1:4
       if i == 1
@@ -86,10 +86,6 @@ if success(rc)
     end
     savefig(joinpath(ProjDir, "tmp", "theta_$j.png"))
   end
-
-  sdf = read_summary(pes4)
-  sdf |> display
-  println("\n")
 
 end
 
