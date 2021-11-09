@@ -52,8 +52,7 @@ data = convert(Array, randomized)
 priors = [truncated(Normal(1.5,0.1),1.0,1.8)]
 
 # ╔═╡ bd8fedbe-2724-4032-b0fe-f76d10704c30
-bayesian_result = stan_inference(prob1,t,data,priors;num_samples=300,
-                                 num_warmup=500,likelihood=Normal)
+bayesian_result = stan_inference(prob1,t,data,priors;likelihood=Normal)
 
 # ╔═╡ 65cef730-51ee-40ba-869c-81a77ded40ca
 let
