@@ -4,102 +4,219 @@
 using Markdown
 using InteractiveUtils
 
-# ╔═╡ bf191bbd-979d-4b93-95f3-0436a42f0e92
+# ╔═╡ a49841eb-79dc-4920-9e97-778e0ce8e5f6
 using Pkg, DrWatson
 
-# ╔═╡ fdbe4b5d-f6bc-4155-9e9c-62ed477ad2d2
+# ╔═╡ 785c2728-955b-4294-9cda-dd3050740cf8
 begin
-	using DataFrames, MonteCarloMeasurements
 	using DiffEqBayesStan, OrdinaryDiffEq, ParameterizedFunctions
-	using RecursiveArrayTools, Distributions, MCMCChains, StatsPlots
+	using ModelingToolkit, RecursiveArrayTools, Distributions, Random
+	using OrdinaryDiffEq, RecursiveArrayTools, ParameterizedFunctions
+	using CSV, DataFrames, StatsPlots, MonteCarloMeasurements
 	using StanSample
 end
 
-# ╔═╡ ead436ad-e951-4d96-9cbc-668607c51b13
-md"##### One parameter case"
+# ╔═╡ 270baffd-6b19-4dd3-b988-addc8d682ce9
+f = @ode_def LotkaVolterraTest begin
+    dx = a*x - b*x*y
+    dy = -c*y + d*x*y
+end a b c d;
 
-# ╔═╡ a6e78d5f-f4c1-40cc-a045-241c3f5d0b38
-f1 = @ode_def begin
-  dx = a*x - x*y
-  dy = -3y + x*y
-end a
-
-# ╔═╡ 8562fbaa-acf5-49af-a63a-d5b47891cf0b
-u0 = [1.0,1.0]
-
-# ╔═╡ 3080296a-a9ce-468c-8224-e1292b477a8e
-tspan = (0.0,10.0)
-
-# ╔═╡ 005f0b05-a786-473c-bead-e45d42637444
-p = [1.5]
-
-# ╔═╡ f20e1fcf-2d00-4991-8588-2895048e0968
-prob1 = ODEProblem(f1,u0,tspan,p)
-
-# ╔═╡ 83410b25-998e-46b8-b471-cabad9c7c1a6
-sol = solve(prob1, Tsit5())
-
-# ╔═╡ f9cc4d19-58b9-48b7-b425-c04b74fb0a34
-t = collect(range(1,stop=10,length=50))
-
-# ╔═╡ 4f867c33-b020-4251-a28c-286014634a98
-randomized = VectorOfArray([(sol(t[i]) + .01randn(2)) for i in 1:length(t)])
-
-# ╔═╡ 6a9050d5-3d6b-4494-8324-28ac3e97306d
-data = convert(Array, randomized)
-
-# ╔═╡ fb335677-6e71-4741-b070-7849eca2f6f2
-priors = [truncated(Normal(1.5,0.1),1.0,1.8)]
-
-# ╔═╡ bd8fedbe-2724-4032-b0fe-f76d10704c30
-bayesian_result = stan_inference(prob1,t,data,priors;likelihood=Normal)
-
-# ╔═╡ 65cef730-51ee-40ba-869c-81a77ded40ca
-let
-	if success(bayesian_result.return_code)
-		part_lv  = read_samples(bayesian_result.model, :particles)
-
-		# Uncomment for local chain inspection
-		p1 = Vector{Plots.Plot{Plots.GRBackend}}(undef, length(p))
-		p2 = Vector{Plots.Plot{Plots.GRBackend}}(undef, length(p))
-		for i in 1:length(p)
-			p1[i] = plot(title="theta_$i")
-			plot!(p1[i], part_lv[Symbol("theta_$i")].particles)
-			p2[i] = plot(title="theta_$i")
-			density!(p2[i], part_lv[Symbol("theta_$i")].particles)
-		end
-		plot(p1..., p2..., layout=(length(p),2))
-	end
+# ╔═╡ f50f7776-8f8d-44f1-a976-11a4bd78f8bf
+begin
+	u0 = [30.0, 4.0]
+	tspan = (0.0, 21.0)
+	p = [0.55, 0.028, 0.84, 0.026]
+	
+	prob = ODEProblem(f,u0,tspan,p)
+	sol = solve(prob,Tsit5())
 end
 
-# ╔═╡ c4bad046-a36d-4f91-a392-dfe2431fca8b
-pars1  = read_samples(bayesian_result.model, :particles)
+# ╔═╡ a8341561-26d9-49d6-8d4d-81b5509b06f8
+t = collect(range(1,stop=20,length=20))
 
-# ╔═╡ e781242a-3351-48da-bf50-b976d0c18390
-DataFrame(pars1)
+# ╔═╡ 86a3936d-162d-4dd2-8127-85d877267dd2
+datadir()
+
+# ╔═╡ a55d455e-99b7-4306-9c8a-409a191a9dc4
+df = CSV.read(datadir("lynx_hare.csv"), DataFrame)
+
+# ╔═╡ 33b6c97a-fed5-4fc9-ae23-94f34c73330f
+lv = "
+  functions {
+    real[] dz_dt(real t,       // time
+                 real[] z,     // system state {prey, predator}
+                 real[] theta, // parameters
+                 real[] x_r,   // unused data
+                 int[] x_i) {
+      real u = z[1];
+      real v = z[2];
+
+      real alpha = theta[1];
+      real beta = theta[2];
+      real gamma = theta[3];
+      real delta = theta[4];
+
+      real du_dt = (alpha - beta * v) * u;
+      real dv_dt = (-gamma + delta * u) * v;
+
+      return { du_dt, dv_dt };
+    }
+  }
+  data {
+    int<lower = 0> N;          // number of measurement times
+    real ts[N];                // measurement times > 0
+    real y_init[2];            // initial measured populations
+    real<lower = 0> y[N, 2];   // measured populations
+  }
+  parameters {
+    real<lower = 0> theta[4];   // { alpha, beta, gamma, delta }
+    real<lower = 0> z_init[2];  // initial population
+    real<lower = 0> sigma[2];   // measurement errors
+  }
+  transformed parameters {
+    real z[N, 2]
+      = integrate_ode_rk45(dz_dt, z_init, 0, ts, theta,
+                           rep_array(0.0, 0), rep_array(0, 0),
+                           1e-5, 1e-3, 5e2);
+  }
+  model {
+    theta[{1, 3}] ~ normal(1, 0.5);
+    theta[{2, 4}] ~ normal(0.05, 0.05);
+    sigma ~ lognormal(-1, 1);
+    z_init ~ lognormal(10, 1);
+    for (k in 1:2) {
+      y_init[k] ~ lognormal(log(z_init[k]), sigma[k]);
+      y[ , k] ~ lognormal(log(z[, k]), sigma[k]);
+    }
+  }
+  generated quantities {
+    real y_init_rep[2];
+    real y_rep[N, 2];
+    for (k in 1:2) {
+      y_init_rep[k] = lognormal_rng(log(z_init[k]), sigma[k]);
+      for (n in 1:N)
+        y_rep[n, k] = lognormal_rng(log(z[n, k]), sigma[k]);
+    }
+  }
+";
+
+# ╔═╡ 2dda7e27-aa1f-4e37-84ac-f883b4dd117f
+sm = SampleModel("lynx_hare", lv)
+
+# ╔═╡ 87a482a5-7f6e-4f57-9cda-ff8aa1a3d0af
+begin
+	N = size(df, 1) -1
+	data = Dict(
+	  "N" => N,
+	  "ts" => collect(1:N),
+	  "y_init" => [30, 4],
+	  "y" => Array(df[2:end, [:Hare, :Lynx]])
+	)
+	
+	@time rc = stan_sample(sm; data)
+end;
+
+# ╔═╡ fda95c9b-dc7d-4b27-9699-49bf16e6236b
+if success(rc)
+  dfa = read_samples(sm, :dataframe)
+  part = Particles(dfa)
+end
+
+# ╔═╡ 3d66a4aa-92fa-4c8a-9b3c-27f8cc9f6277
+if success(rc)
+  stan_summary(sm, true)
+
+  original_stan_result = "
+                mean se_mean    sd    10%    50%    90% n_eff Rhat
+    theta[1]   0.549   0.002 0.065  0.469  0.545  0.636  1163    1
+    theta[2]   0.028   0.000 0.004  0.023  0.028  0.034  1281    1
+    theta[3]   0.797   0.003 0.091  0.684  0.791  0.918  1125    1
+    theta[4]   0.024   0.000 0.004  0.020  0.024  0.029  1170    1
+    sigma[1]   0.248   0.001 0.045  0.198  0.241  0.306  2625    1
+    sigma[2]   0.252   0.001 0.044  0.201  0.246  0.310  2808    1
+    z_init[1] 33.960   0.056 2.909 30.363 33.871 37.649  2684    1
+    z_init[2]  5.949   0.011 0.533  5.294  5.926  6.644  2235    1
+  ";
+end
+
+# ╔═╡ ce63636a-d5c8-4549-83c5-9897973d8123
+function hpdi(x::Vector{T}; alpha=0.11) where {T<:Real}
+    n = length(x)
+    m = max(1, ceil(Int, alpha * n))
+
+    y = sort(x)
+    a = y[1:m]
+    b = y[(n - m + 1):n]
+    _, i = findmin(b - a)
+
+    return [a[i], b[i]]
+end
+
+# ╔═╡ d5b02b78-aa73-4b94-a4c7-4735f7687d1e
+if success(rc)
+
+  p1 = plot()
+  scatter!(vcat(0, t), df[:, :Hare], lab="Obs hare")
+  scatter!(vcat(0, t), vcat(30, [mean(dfa[:, Symbol("y_rep.$i.1")]) for i in 1:20]),
+    lab="Pred hare")
+  hares = transpose(convert(Array, VectorOfArray(vcat(
+    [hpdi(dfa[:, Symbol("z_init.1")])],
+    [hpdi(dfa[:, Symbol("y_rep.$i.1")]) for i in 1:20]
+  ))))
+  mu = vcat(
+    mean(dfa[:, Symbol("z_init.1")]),
+    [mean(dfa[:, Symbol("y_rep.$i.1")]) for i in 1:20]
+  )
+  plot!(vcat(0, t), mu; ribbon=hares, alpha=0.4, lab="89% hpd", color=:lightgrey)
+
+  plot!(sol)
+
+  p2 = plot()
+  scatter!(vcat(0, t), vcat(4, [mean(dfa[:, Symbol("y_rep.$i.2")]) for i in 1:20]), 
+    lab="Pred lynx")
+  scatter!(vcat(0, t), df[:, :Lynx], lab="Obs Lynx")
+  lynxs = transpose(convert(Array, VectorOfArray(vcat(
+    [hpdi(dfa[:, Symbol("z_init.2")])],
+    [hpdi(dfa[:, Symbol("y_rep.$i.2")]) for i in 1:20]
+  ))))
+  mu = vcat(
+    mean(dfa[:, Symbol("z_init.2")]),
+    [mean(dfa[:, Symbol("y_rep.$i.2")]) for i in 1:20]
+  )
+  plot!(vcat(0, t), mu; ribbon=lynxs, alpha=0.4, lab="89% hpd", color=:lightgrey)
+
+  plot!(sol)
+
+  plot(p1, p2, layout=(2,1))
+
+end
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
+CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 DiffEqBayesStan = "086cc5bb-2461-57d8-8068-0aed7f5b5cd1"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
 DrWatson = "634d3b9d-ee7a-5ddf-bec9-22491ea816e1"
-MCMCChains = "c7f686f2-ff18-58e9-bc7b-31028e88f75d"
+ModelingToolkit = "961ee093-0014-501f-94e3-6117800e7a78"
 MonteCarloMeasurements = "0987c9cc-fe09-11e8-30f0-b96dd679fdca"
 OrdinaryDiffEq = "1dea7af3-3e70-54e6-95c3-0bf5283fa5ed"
 ParameterizedFunctions = "65888b18-ceab-5e60-b2b9-181511a3b968"
 Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 RecursiveArrayTools = "731186ca-8d62-57ce-b412-fbd966d074cd"
 StanSample = "c1514b29-d3a0-5178-b312-660c88baa699"
 StatsPlots = "f3b207a7-027a-5e70-b257-86293d7955fd"
 
 [compat]
+CSV = "~0.9.10"
 DataFrames = "~1.2.2"
 DiffEqBayesStan = "~1.0.0"
-Distributions = "~0.25.24"
+Distributions = "~0.25.25"
 DrWatson = "~2.7.3"
-MCMCChains = "~5.0.1"
+ModelingToolkit = "~6.7.1"
 MonteCarloMeasurements = "~1.0.3"
 OrdinaryDiffEq = "~5.67.0"
 ParameterizedFunctions = "~5.12.1"
@@ -251,6 +368,12 @@ git-tree-sha1 = "f885e7e7c124f8c92650d61b9477b9ac2ee607dd"
 uuid = "d360d2e6-b24c-11e9-a2a3-2a2ae2dbcce4"
 version = "1.11.1"
 
+[[deps.ChangesOfVariables]]
+deps = ["LinearAlgebra", "Test"]
+git-tree-sha1 = "9a1d594397670492219635b35a3d830b04730d62"
+uuid = "9e997f8a-9a97-42d5-a9f1-ce6bfc15e2c0"
+version = "0.1.1"
+
 [[deps.CloseOpenIntervals]]
 deps = ["ArrayInterface", "Static"]
 git-tree-sha1 = "7b8f09d58294dc8aa13d91a8544b37c8a1dcbc06"
@@ -399,6 +522,12 @@ version = "0.1.1"
 deps = ["Mmap"]
 uuid = "8bb1440f-4735-579b-a4ab-409b98df4dab"
 
+[[deps.DensityInterface]]
+deps = ["InverseFunctions", "Test"]
+git-tree-sha1 = "794daf62dce7df839b8ed446fc59c68db4b5182f"
+uuid = "b429d917-457f-4dbc-8f4c-0cc954292b1d"
+version = "0.3.3"
+
 [[deps.DiffEqBase]]
 deps = ["ArrayInterface", "ChainRulesCore", "DEDataArrays", "DataStructures", "Distributions", "DocStringExtensions", "FastBroadcast", "ForwardDiff", "FunctionWrappers", "IterativeSolvers", "LabelledArrays", "LinearAlgebra", "Logging", "MuladdMacro", "NonlinearSolve", "Parameters", "PreallocationTools", "Printf", "RecursiveArrayTools", "RecursiveFactorization", "Reexport", "Requires", "SciMLBase", "Setfield", "SparseArrays", "StaticArrays", "Statistics", "SuiteSparse", "ZygoteRules"]
 git-tree-sha1 = "5c3d877ddfc2da61ce5cc1f5ce330ff97789c57c"
@@ -446,10 +575,10 @@ deps = ["Random", "Serialization", "Sockets"]
 uuid = "8ba89e20-285c-5b6f-9357-94700520ee1b"
 
 [[deps.Distributions]]
-deps = ["ChainRulesCore", "FillArrays", "LinearAlgebra", "PDMats", "Printf", "QuadGK", "Random", "SparseArrays", "SpecialFunctions", "Statistics", "StatsBase", "StatsFuns"]
-git-tree-sha1 = "72dcda9e19f88d09bf21b5f9507a0bb430bce2aa"
+deps = ["ChainRulesCore", "DensityInterface", "FillArrays", "LinearAlgebra", "PDMats", "Printf", "QuadGK", "Random", "SparseArrays", "SpecialFunctions", "Statistics", "StatsBase", "StatsFuns"]
+git-tree-sha1 = "b66f784c86bff7754c5678993d7f3b57ea914364"
 uuid = "31c24e10-a181-5473-b8eb-7969acd0382f"
-version = "0.25.24"
+version = "0.25.25"
 
 [[deps.DocStringExtensions]]
 deps = ["LibGit2"]
@@ -557,9 +686,9 @@ version = "1.11.2"
 
 [[deps.FilePathsBase]]
 deps = ["Dates", "Mmap", "Printf", "Test", "UUIDs"]
-git-tree-sha1 = "d962b5a47b6d191dbcd8ae0db841bc70a05a3f5b"
+git-tree-sha1 = "5440c1d26aa29ca9ea848559216e5ee5f16a8627"
 uuid = "48062228-2e41-5def-b9a4-89aafe57970f"
-version = "0.9.13"
+version = "0.9.14"
 
 [[deps.FillArrays]]
 deps = ["LinearAlgebra", "Random", "SparseArrays", "Statistics"]
@@ -752,9 +881,9 @@ version = "0.5.3"
 
 [[deps.InverseFunctions]]
 deps = ["Test"]
-git-tree-sha1 = "f0c6489b12d28fb4c2103073ec7452f3423bd308"
+git-tree-sha1 = "a7254c0acd8e62f1ac75ad24d5db43f5f19f3c65"
 uuid = "3587e190-3f89-42d0-90ee-14403ec27112"
-version = "0.1.1"
+version = "0.1.2"
 
 [[deps.InvertedIndices]]
 git-tree-sha1 = "bee5f1ef5bf65df56bdd2e40447590b272a5471f"
@@ -837,9 +966,9 @@ version = "1.3.0"
 
 [[deps.LabelledArrays]]
 deps = ["ArrayInterface", "LinearAlgebra", "MacroTools", "StaticArrays"]
-git-tree-sha1 = "8f5fd068dfee92655b79e0859ecad8b492dfe8b1"
+git-tree-sha1 = "fa07d4ee13edf79a6ac2575ad28d9f43694e1190"
 uuid = "2ee39098-c373-598a-b85f-a56591580800"
-version = "1.6.5"
+version = "1.6.6"
 
 [[deps.Latexify]]
 deps = ["Formatting", "InteractiveUtils", "LaTeXStrings", "MacroTools", "Markdown", "Printf", "Requires"]
@@ -947,10 +1076,10 @@ deps = ["Libdl", "libblastrampoline_jll"]
 uuid = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 
 [[deps.LogExpFunctions]]
-deps = ["ChainRulesCore", "DocStringExtensions", "InverseFunctions", "IrrationalConstants", "LinearAlgebra"]
-git-tree-sha1 = "6193c3815f13ba1b78a51ce391db8be016ae9214"
+deps = ["ChainRulesCore", "ChangesOfVariables", "DocStringExtensions", "InverseFunctions", "IrrationalConstants", "LinearAlgebra"]
+git-tree-sha1 = "be9eef9f9d78cecb6f262f3c10da151a6c5ab827"
 uuid = "2ab3a3ac-af41-5b50-aa03-7779005ae688"
-version = "0.3.4"
+version = "0.3.5"
 
 [[deps.Logging]]
 uuid = "56ddb016-857b-54e1-b83d-db4d58db5568"
@@ -1557,9 +1686,9 @@ version = "0.14.28"
 
 [[deps.StrideArraysCore]]
 deps = ["ArrayInterface", "CloseOpenIntervals", "IfElse", "LayoutPointers", "ManualMemory", "Requires", "SIMDTypes", "Static", "ThreadingUtilities"]
-git-tree-sha1 = "f081c3c985849f4263fd0ed13e51feceed4ccc79"
+git-tree-sha1 = "12cf3253ebd8e2a3214ae171fbfe51e7e8d8ad28"
 uuid = "7792a7ef-975c-4747-a70f-980b88e8d1da"
-version = "0.2.8"
+version = "0.2.9"
 
 [[deps.StructArrays]]
 deps = ["Adapt", "DataAPI", "StaticArrays", "Tables"]
@@ -1946,22 +2075,19 @@ version = "0.9.1+5"
 """
 
 # ╔═╡ Cell order:
-# ╠═bf191bbd-979d-4b93-95f3-0436a42f0e92
-# ╠═fdbe4b5d-f6bc-4155-9e9c-62ed477ad2d2
-# ╟─ead436ad-e951-4d96-9cbc-668607c51b13
-# ╠═a6e78d5f-f4c1-40cc-a045-241c3f5d0b38
-# ╠═8562fbaa-acf5-49af-a63a-d5b47891cf0b
-# ╠═3080296a-a9ce-468c-8224-e1292b477a8e
-# ╠═005f0b05-a786-473c-bead-e45d42637444
-# ╠═f20e1fcf-2d00-4991-8588-2895048e0968
-# ╠═83410b25-998e-46b8-b471-cabad9c7c1a6
-# ╠═f9cc4d19-58b9-48b7-b425-c04b74fb0a34
-# ╠═4f867c33-b020-4251-a28c-286014634a98
-# ╠═6a9050d5-3d6b-4494-8324-28ac3e97306d
-# ╠═fb335677-6e71-4741-b070-7849eca2f6f2
-# ╠═bd8fedbe-2724-4032-b0fe-f76d10704c30
-# ╠═65cef730-51ee-40ba-869c-81a77ded40ca
-# ╠═c4bad046-a36d-4f91-a392-dfe2431fca8b
-# ╠═e781242a-3351-48da-bf50-b976d0c18390
+# ╠═a49841eb-79dc-4920-9e97-778e0ce8e5f6
+# ╠═785c2728-955b-4294-9cda-dd3050740cf8
+# ╠═270baffd-6b19-4dd3-b988-addc8d682ce9
+# ╠═f50f7776-8f8d-44f1-a976-11a4bd78f8bf
+# ╠═a8341561-26d9-49d6-8d4d-81b5509b06f8
+# ╠═86a3936d-162d-4dd2-8127-85d877267dd2
+# ╠═a55d455e-99b7-4306-9c8a-409a191a9dc4
+# ╠═33b6c97a-fed5-4fc9-ae23-94f34c73330f
+# ╠═2dda7e27-aa1f-4e37-84ac-f883b4dd117f
+# ╠═87a482a5-7f6e-4f57-9cda-ff8aa1a3d0af
+# ╠═fda95c9b-dc7d-4b27-9699-49bf16e6236b
+# ╠═3d66a4aa-92fa-4c8a-9b3c-27f8cc9f6277
+# ╠═ce63636a-d5c8-4549-83c5-9897973d8123
+# ╠═d5b02b78-aa73-4b94-a4c7-4735f7687d1e
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
