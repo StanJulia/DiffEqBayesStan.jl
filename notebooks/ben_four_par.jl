@@ -36,10 +36,10 @@ end
 t = collect(range(1,stop=20,length=20))
 
 # ╔═╡ 86a3936d-162d-4dd2-8127-85d877267dd2
-path = Base.find_package("DiffEqBayesStan")
+path = debs_datadir()
 
 # ╔═╡ a55d455e-99b7-4306-9c8a-409a191a9dc4
-df = CSV.read(joinpath(path, "data", "lynx_hare.csv"), DataFrame)
+df = CSV.read(debs_datadir("lynx_hare.csv"), DataFrame)
 
 # ╔═╡ 33b6c97a-fed5-4fc9-ae23-94f34c73330f
 lv = "
