@@ -125,19 +125,22 @@ end
 
 # ╔═╡ 3d66a4aa-92fa-4c8a-9b3c-27f8cc9f6277
 if success(rc)
-  stan_summary(sm, true)
-
-  original_stan_result = "
-                mean se_mean    sd    10%    50%    90% n_eff Rhat
-    theta[1]   0.549   0.002 0.065  0.469  0.545  0.636  1163    1
-    theta[2]   0.028   0.000 0.004  0.023  0.028  0.034  1281    1
-    theta[3]   0.797   0.003 0.091  0.684  0.791  0.918  1125    1
-    theta[4]   0.024   0.000 0.004  0.020  0.024  0.029  1170    1
-    sigma[1]   0.248   0.001 0.045  0.198  0.241  0.306  2625    1
-    sigma[2]   0.252   0.001 0.044  0.201  0.246  0.310  2808    1
-    z_init[1] 33.960   0.056 2.909 30.363 33.871 37.649  2684    1
-    z_init[2]  5.949   0.011 0.533  5.294  5.926  6.644  2235    1
-  ";
+	original_stan_result = "
+				mean se_mean    sd    10%    50%    90% n_eff Rhat
+	theta[1]   0.549   0.002 0.065  0.469  0.545  0.636  1163    1
+	theta[2]   0.028   0.000 0.004  0.023  0.028  0.034  1281    1
+	theta[3]   0.797   0.003 0.091  0.684  0.791  0.918  1125    1
+	theta[4]   0.024   0.000 0.004  0.020  0.024  0.029  1170    1
+	sigma[1]   0.248   0.001 0.045  0.198  0.241  0.306  2625    1
+	sigma[2]   0.252   0.001 0.044  0.201  0.246  0.310  2808    1
+	z_init[1] 33.960   0.056 2.909 30.363 33.871 37.649  2684    1
+	z_init[2]  5.949   0.011 0.533  5.294  5.926  6.644  2235    1
+	";
+	
+	# Generate stansummary result .csv file
+	stan_summary(sm)
+	# Read summyry.csv file as a DataFrame
+	dfs = read_summary(sm)
 end
 
 # ╔═╡ ce63636a-d5c8-4549-83c5-9897973d8123
@@ -213,7 +216,7 @@ StatsPlots = "f3b207a7-027a-5e70-b257-86293d7955fd"
 [compat]
 CSV = "~0.9.10"
 DataFrames = "~1.2.2"
-DiffEqBayesStan = "~1.0.0"
+DiffEqBayesStan = "~1.1.0"
 Distributions = "~0.25.25"
 DrWatson = "~2.7.3"
 ModelingToolkit = "~6.7.1"
@@ -532,10 +535,10 @@ uuid = "2b5f629d-d688-5b77-993f-72d75c75574e"
 version = "6.76.0"
 
 [[DiffEqBayesStan]]
-deps = ["DiffEqBase", "DiffResults", "Distances", "Distributed", "Distributions", "DocStringExtensions", "ForwardDiff", "LabelledArrays", "LinearAlgebra", "MCMCChains", "MacroTools", "Missings", "ModelingToolkit", "Optim", "OrdinaryDiffEq", "PDMats", "ParameterizedFunctions", "Parameters", "Random", "RecursiveArrayTools", "Reexport", "Requires", "StanSample", "StatsPlots", "StructArrays"]
-git-tree-sha1 = "300a8ea3de260c183b72dbfccd9675e3794e8679"
+deps = ["CSV", "DataFrames", "DelimitedFiles", "DiffEqBase", "DiffResults", "Distances", "Distributed", "Distributions", "DocStringExtensions", "ForwardDiff", "LabelledArrays", "LinearAlgebra", "MCMCChains", "MacroTools", "Missings", "ModelingToolkit", "MonteCarloMeasurements", "Optim", "OrdinaryDiffEq", "PDMats", "ParameterizedFunctions", "Parameters", "Random", "RecursiveArrayTools", "Reexport", "Requires", "StanSample", "StatsBase", "StatsPlots", "StructArrays", "Unicode"]
+git-tree-sha1 = "fb62f3429f8ee0cf9cfab1206247ab1d21e83b16"
 uuid = "086cc5bb-2461-57d8-8068-0aed7f5b5cd1"
-version = "1.0.0"
+version = "1.1.0"
 
 [[DiffEqCallbacks]]
 deps = ["DataStructures", "DiffEqBase", "ForwardDiff", "LinearAlgebra", "NLsolve", "OrdinaryDiffEq", "Parameters", "RecipesBase", "RecursiveArrayTools", "StaticArrays"]
@@ -572,10 +575,10 @@ deps = ["Random", "Serialization", "Sockets"]
 uuid = "8ba89e20-285c-5b6f-9357-94700520ee1b"
 
 [[Distributions]]
-deps = ["ChainRulesCore", "DensityInterface", "FillArrays", "LinearAlgebra", "PDMats", "Printf", "QuadGK", "Random", "SparseArrays", "SpecialFunctions", "Statistics", "StatsBase", "StatsFuns"]
-git-tree-sha1 = "b66f784c86bff7754c5678993d7f3b57ea914364"
+deps = ["ChainRulesCore", "DensityInterface", "FillArrays", "LinearAlgebra", "PDMats", "Printf", "QuadGK", "Random", "SparseArrays", "SpecialFunctions", "Statistics", "StatsBase", "StatsFuns", "Test"]
+git-tree-sha1 = "ed2cf1e5388569cd00fa9cd28519434a5571633f"
 uuid = "31c24e10-a181-5473-b8eb-7969acd0382f"
-version = "0.25.25"
+version = "0.25.26"
 
 [[DocStringExtensions]]
 deps = ["LibGit2"]
@@ -718,10 +721,10 @@ uuid = "59287772-0a20-5a39-b81b-1366585eb4c0"
 version = "0.4.2"
 
 [[ForwardDiff]]
-deps = ["CommonSubexpressions", "DiffResults", "DiffRules", "LinearAlgebra", "NaNMath", "Preferences", "Printf", "Random", "SpecialFunctions", "StaticArrays"]
-git-tree-sha1 = "ef3fec65f9db26fa2cf8f4133c697c5b7ce63c1d"
+deps = ["CommonSubexpressions", "DiffResults", "DiffRules", "LinearAlgebra", "LogExpFunctions", "NaNMath", "Preferences", "Printf", "Random", "SpecialFunctions", "StaticArrays"]
+git-tree-sha1 = "6406b5112809c08b1baa5703ad274e1dded0652f"
 uuid = "f6369f11-7733-5829-9624-2563aa707210"
-version = "0.10.22"
+version = "0.10.23"
 
 [[FreeType2_jll]]
 deps = ["Artifacts", "Bzip2_jll", "JLLWrappers", "Libdl", "Pkg", "Zlib_jll"]
@@ -1089,9 +1092,9 @@ version = "0.4.7"
 
 [[LoopVectorization]]
 deps = ["ArrayInterface", "CPUSummary", "CloseOpenIntervals", "DocStringExtensions", "HostCPUFeatures", "IfElse", "LayoutPointers", "LinearAlgebra", "OffsetArrays", "PolyesterWeave", "Requires", "SIMDDualNumbers", "SLEEFPirates", "Static", "ThreadingUtilities", "UnPack", "VectorizationBase"]
-git-tree-sha1 = "caaa2d3518fe6312327819cdd485a4258e52ece0"
+git-tree-sha1 = "2f8621145e87ce637a2f7ac701353c74d974455e"
 uuid = "bdcacae8-1622-11e9-2a5c-532679323890"
-version = "0.12.95"
+version = "0.12.96"
 
 [[MCMCChains]]
 deps = ["AbstractMCMC", "AxisArrays", "Compat", "Dates", "Distributions", "Formatting", "IteratorInterfaceExtensions", "KernelDensity", "LinearAlgebra", "MCMCDiagnosticTools", "MLJModelInterface", "NaturalSort", "OrderedCollections", "PrettyTables", "Random", "RecipesBase", "Serialization", "SpecialFunctions", "Statistics", "StatsBase", "StatsFuns", "TableTraits", "Tables"]

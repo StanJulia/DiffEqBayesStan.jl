@@ -1,7 +1,7 @@
 name = "DiffEqBayesStan"
 uuid = "086cc5bb-2461-57d8-8068-0aed7f5b5cd1"
 authors = ["Vaibhavdixit02 <vaibhavyashdixit@gmail.com>"]
-version = "1.1.0"
+version = "1.1.1"
 
 [deps]
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
