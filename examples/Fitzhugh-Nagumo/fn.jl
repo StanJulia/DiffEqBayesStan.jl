@@ -3,7 +3,7 @@
 
 ProjDir = @__DIR__
 using DiffEqBayesStan, BenchmarkTools, MCMCChains
-using Tables, AxisKeys
+using Tables, AxisKeys, DataFrames
 
 using OrdinaryDiffEq, RecursiveArrayTools, Distributions
 using ParameterizedFunctions, StanSample
@@ -63,15 +63,24 @@ diffeq_string = "
 }
 "
 
-@btime bayesian_result_stan = 
-  stan_inference(prob_ode_fitzhughnagumo,t,data,priors;
-    num_samples = 2500, output_format = :dataframe,
-    diffeq_string, tmpdir)
-
 bayesian_result_stan = 
   stan_inference(prob_ode_fitzhughnagumo,t,data,priors;
     num_samples = 2500, output_format = :dataframe,
     diffeq_string, tmpdir)
 
-describe(bayesian_result_stan.chains)
+@btime bayesian_result_stan = 
+  stan_inference(prob_ode_fitzhughnagumo,t,data,priors;
+    num_samples = 2500, output_format = :dataframe,
+    diffeq_string, tmpdir)
+
+describe(bayesian_result_stan.chains) |> display
+println()
+
+st =  read_samples(bayesian_result_stan.model, :table)
+describe(DataFrame(st)) |> display
+println()
+
+ka = read_samples(bayesian_result_stan.model, :keyedarray)
+ka |> display
+println()
 
