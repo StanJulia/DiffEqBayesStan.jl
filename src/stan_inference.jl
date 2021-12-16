@@ -61,7 +61,9 @@ function stan_inference(prob::DiffEqBase.DEProblem,
     # read_samples arguments
     output_format=:mcmcchains,
     # read_summary arguments
-    print_summary=true)
+    print_summary=true,
+    # pass in existing tmpdir
+    tmpdir=mktempdir())
 
     save_idxs !== nothing && length(save_idxs) == 1 ? save_idxs = save_idxs[1] : save_idxs = save_idxs
     length_of_y = length(prob.u0)
@@ -185,7 +187,9 @@ function stan_inference(prob::DiffEqBase.DEProblem,
         ";
 
         stanmodel = 
-            SampleModel("parameter_estimation_model", parameter_estimation_model)
+            SampleModel("parameter_estimation_model",
+                parameter_estimation_model, 
+                tmpdir)
     end
 
     data = Dict(
@@ -194,7 +198,7 @@ function stan_inference(prob::DiffEqBase.DEProblem,
         "t0" => prob.tspan[1], "ts" => t)
 
     @time rc = stan_sample(stanmodel; data, 
-        num_samples, num_warmups, num_chains, num_threads, print_summary)
+        num_samples, num_warmups, num_chains, num_threads)
 
     if success(rc)
         return StanResult(stanmodel, rc, read_samples(stanmodel, output_format))
