@@ -4,3 +4,5 @@
 Manifest.toml
 tmp
 test/tmp
+examples/*/tmp
+examples/*/*/tmp
