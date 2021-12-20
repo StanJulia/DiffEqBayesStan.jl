@@ -8,6 +8,7 @@ on:
 
 env:
   JULIA_CMDSTAN_HOME: "/home/worker/cmdstan-2.27.0/"
+  STAN_NUM_THREADS: "1"
 
 jobs:
   test:

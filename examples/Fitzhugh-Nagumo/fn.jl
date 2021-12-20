@@ -65,12 +65,11 @@ diffeq_string = "
 
 bayesian_result_stan = 
   stan_inference(prob_ode_fitzhughnagumo,t,data,priors;
-    num_samples = 2500, output_format = :dataframe,
-    diffeq_string, tmpdir)
+    num_threads=4, num_chains = 10, num_samples = 1000, output_format = :dataframe,
+    diffeq_string)
 
-@btime bayesian_result_stan = 
-  stan_inference(prob_ode_fitzhughnagumo,t,data,priors;
-    num_samples = 2500, output_format = :dataframe,
+@btime stan_inference(prob_ode_fitzhughnagumo,t,data,priors;
+    num_threads=10, num_chains=4, num_samples = 2500, output_format = :dataframe,
     diffeq_string, tmpdir)
 
 describe(bayesian_result_stan.chains) |> display
