@@ -2,7 +2,7 @@
 # author: Vaibhav Dixit, Chris Rackauckas
 
 ProjDir = @__DIR__
-using DiffEqBayesStan, BenchmarkTools, MCMCChains
+using DiffEqBayesStan, BenchmarkTools, MCMCChains, StatsPlots
 using Tables, AxisKeys, DataFrames
 
 using OrdinaryDiffEq, RecursiveArrayTools, Distributions
@@ -65,12 +65,12 @@ diffeq_string = "
 
 bayesian_result_stan = 
   stan_inference(prob_ode_fitzhughnagumo,t,data,priors;
-    num_threads=4, num_chains = 4, num_samples = 2500, output_format = :dataframe,
-    diffeq_string)
+    num_threads=1, num_chains=1, num_samples=10000, output_format = :dataframe,
+    diffeq_string, tmpdir);
 
 @btime stan_inference(prob_ode_fitzhughnagumo,t,data,priors;
-    num_threads=4, num_chains=4, num_samples = 2500, output_format = :dataframe,
-    diffeq_string, tmpdir)
+    num_threads=8, num_chains=8, num_samples=1250, output_format = :dataframe,
+    diffeq_string, tmpdir);
 
 describe(bayesian_result_stan.chains) |> display
 println()
@@ -83,3 +83,5 @@ ka = read_samples(bayesian_result_stan.model, :keyedarray)
 ka |> display
 println()
 
+chns = read_samples(bayesian_result_stan.model, :mcmcchains)
+plot(chns)
