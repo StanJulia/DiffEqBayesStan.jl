@@ -47,7 +47,7 @@ CSV.write(joinpath(ProjDir, "results2_df.csv"), df2)
 plot(; xlim=(0, 9), ylim=(0, 50),
     xlab="num_chains", ylab="elapsed time [s]")
 for nc in ncs
-    dft = df[df.num_threads .== nc, :]
+    dft = df2[df.num_threads .== nc, :]
     scatter!(dft.num_chains, dft.mean; lab="num_threads=$(nc)")
 end
 

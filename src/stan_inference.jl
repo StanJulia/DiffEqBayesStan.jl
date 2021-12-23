@@ -57,7 +57,7 @@ function stan_inference(prob::DiffEqBase.DEProblem,
     # Stan differential equation function keyword arguments
     alg = :rk45, reltol=1e-3, abstol=1e-6, maxiter=Int(1e5), 
     # stan_sample keyword arguments
-    num_samples=1000, num_warmups=1000, num_chains=4, num_threads=4,
+    num_samples=1000, num_warmups=1000, num_chains=4, num_threads=1,
     # read_samples arguments
     output_format=:mcmcchains,
     # read_summary arguments
