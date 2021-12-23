@@ -68,10 +68,6 @@ bayesian_result_stan =
     num_threads=4, num_chains=4, num_samples=2500, output_format = :dataframe,
     diffeq_string, tmpdir);
 
-@btime stan_inference(prob_ode_fitzhughnagumo,t,data,priors;
-    num_threads=8, num_chains=8, num_samples=1250, output_format = :dataframe,
-    diffeq_string, tmpdir);
-
 describe(bayesian_result_stan.chains) |> display
 println()
 
@@ -85,3 +81,8 @@ println()
 
 chns = read_samples(bayesian_result_stan.model, :mcmcchains)
 plot(chns)
+
+@btime stan_inference(prob_ode_fitzhughnagumo,t,data,priors;
+    num_threads=8, num_chains=8, num_samples=1250, output_format = :dataframe,
+    diffeq_string, tmpdir);
+
