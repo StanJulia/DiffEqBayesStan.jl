@@ -21,7 +21,7 @@ priors = [truncated(Normal(1.5,0.01),0.5,2),truncated(Normal(1.0,0.01),0.5,1.5),
           truncated(Normal(3.0,0.01),0.5,4),truncated(Normal(1.0,0.01),0.5,2)]
 
 bayesian_result = stan_inference(prob1,t,data,priors;
-    num_chains=4,num_samples=1000,num_warmups=1000,
+    num_chains=1,num_samples=1000,num_warmups=1000,
     vars =(DiffEqBayesStan.StanODEData(),InverseGamma(4,1)))
 
 @test mean(get(bayesian_result.chains,:theta_1)[1]) ≈ 1.5 atol=1e-1
