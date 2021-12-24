@@ -52,5 +52,6 @@ for nc in ncs
     scatter!(dft.num_chains, dft.median; lab="num_threads=$(nc)")
 end
 
-savefig(joinpath(ProjDir, "new_results.png"))
+savefig(joinpath(ProjDir, "new_results
+    .png"))
 
