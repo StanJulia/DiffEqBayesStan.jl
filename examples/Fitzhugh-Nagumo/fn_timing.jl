@@ -39,17 +39,17 @@ function timings(nts, ncs, nss, N)
     df
 end
 
-df2 = timings(nts, ncs, nss, N)
-df2 |> display
+df = timings(nts, ncs, nss, N)
+df |> display
 
-CSV.write(joinpath(ProjDir, "results2_df.csv"), df2)
+CSV.write(joinpath(ProjDir, "arm_results4_df.csv"), df)
 
 plot(; xlim=(0, 9), ylim=(0, 50),
     xlab="num_chains", ylab="elapsed time [s]")
 for nc in ncs
-    dft = df2[df.num_threads .== nc, :]
+    dft = df[df.num_threads .== nc, :]
     scatter!(dft.num_chains, dft.mean; lab="num_threads=$(nc)")
 end
 
-savefig(joinpath(ProjDir, "timing_results.png"))
+savefig(joinpath(ProjDir, "arm_results4.png"))
 

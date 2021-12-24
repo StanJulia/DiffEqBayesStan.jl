@@ -82,7 +82,8 @@ println()
 chns = read_samples(bayesian_result_stan.model, :mcmcchains)
 plot(chns)
 
+#=
 @btime stan_inference(prob_ode_fitzhughnagumo,t,data,priors;
     num_threads=8, num_chains=8, num_samples=1250, output_format = :dataframe,
     diffeq_string, tmpdir);
-
+=#
