@@ -43,7 +43,7 @@ end
 df = timings(nts, ncs, nss, N)
 df |> display
 
-CSV.write(joinpath(ProjDir, "arm_results6_df.csv"), df)
+CSV.write(joinpath(ProjDir, "new_results_df.csv"), df)
 
 plot(; xlim=(0, 9), ylim=(0, 60),
     xlab="num_chains", ylab="elapsed time [s]")
@@ -52,5 +52,5 @@ for nc in ncs
     scatter!(dft.num_chains, dft.median; lab="num_threads=$(nc)")
 end
 
-savefig(joinpath(ProjDir, "arm_results6.png"))
+savefig(joinpath(ProjDir, "new_results.png"))
 
