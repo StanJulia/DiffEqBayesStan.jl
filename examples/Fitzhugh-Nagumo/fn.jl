@@ -3,12 +3,13 @@
 
 ProjDir = @__DIR__
 using DiffEqBayesStan, BenchmarkTools, MCMCChains, StatsPlots
-using Tables, AxisKeys, DataFrames
+using Tables, AxisKeys, DataFrames, Random
 
 using OrdinaryDiffEq, RecursiveArrayTools, Distributions
 using ParameterizedFunctions, StanSample
 using Plots
 gr(fmt=:png)
+Randon.seed!(123)
 
 ### Defining the problem
 
