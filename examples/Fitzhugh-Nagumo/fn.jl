@@ -9,7 +9,7 @@ using OrdinaryDiffEq, RecursiveArrayTools, Distributions
 using ParameterizedFunctions, StanSample
 using Plots
 gr(fmt=:png)
-Randon.seed!(123)
+Random.seed!(123)
 
 ### Defining the problem
 
