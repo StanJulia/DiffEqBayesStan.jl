@@ -47,4 +47,4 @@ end
 df = timings(nts, nccs, ncjs, nss, N)
 df |> display
 
-CSV.write(joinpath(ProjDir, "new_results_df.csv"), df)
+CSV.write(joinpath(ProjDir, "results", "new_results_df.csv"), df)

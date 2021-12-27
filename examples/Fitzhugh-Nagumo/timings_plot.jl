@@ -44,13 +44,13 @@ f1 = timings_plot(arm_no_tbb, intel_tbb)
 function threads_plot(df::DataFrame; ts = [1, 2, 4, 8])
     colors = [:darkred, :darkblue, :darkgreen, :black]
     fig = plot(; xlim=(0, 9), ylim=(0, 100),
-        xlab="num_c++_chains", ylab="elapsed time [s]", leg=:topright)
+        xlab="num_c++_chains", ylab="elapsed time [s]", leg=:topleft)
     for (indx, t) in enumerate(ts)
         dft = df[df.num_threads .== t .&& df.num_chains .== 1, :]
         #println(dft)
         marksym = :cross
         plot!(dft.num_cpp_chains, dft.median; 
-            marker=marksym, lab="num_threads = $(t)", color=colors[indx])
+            marker=marksym, lab="threads = $(t)", color=colors[indx])
     end
     title!("TBB & c++\n(8 core Intel)")
     fig
