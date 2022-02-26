@@ -195,7 +195,7 @@ function stan_inference(prob::DiffEqBase.DEProblem,
 
     data = Dict(
         "u0"=>prob.u0, "T" => length(t), 
-        "internal_var___u" => view(data, :, 1:length(t))', 
+        "internal_var___u" => view(data, :, 1:length(t)), 
         "t0" => prob.tspan[1], "ts" => t)
 
     @time rc = stan_sample(stanmodel; data, num_threads, num_cpp_chains, 
