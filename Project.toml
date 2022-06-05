@@ -1,7 +1,7 @@
 name = "DiffEqBayesStan"
 uuid = "086cc5bb-2461-57d8-8068-0aed7f5b5cd1"
 authors = ["Vaibhavdixit02 <vaibhavyashdixit@gmail.com>"]
-version = "2.0.1"
+version = "2.1.0"
 
 [deps]
 AxisKeys = "94b1ba4f-4ee9-5380-92f1-94cde586c3c5"
@@ -33,6 +33,7 @@ Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 RecursiveArrayTools = "731186ca-8d62-57ce-b412-fbd966d074cd"
 Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
 Requires = "ae029012-a4dd-5104-9daa-d747884805df"
+StanBase = "d0ee94f6-a23d-54aa-bbe9-7f572d6da7f5"
 StanSample = "c1514b29-d3a0-5178-b312-660c88baa699"
 StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 StatsPlots = "f3b207a7-027a-5e70-b257-86293d7955fd"
