@@ -1,7 +1,7 @@
 name = "DiffEqBayesStan"
 uuid = "086cc5bb-2461-57d8-8068-0aed7f5b5cd1"
 authors = ["Vaibhavdixit02 <vaibhavyashdixit@gmail.com>"]
-version = "2.0.0"
+version = "2.0.1"
 
 [deps]
 AxisKeys = "94b1ba4f-4ee9-5380-92f1-94cde586c3c5"
@@ -49,7 +49,7 @@ DiffEqBase = "6"
 DiffResults = "1"
 Distances = "0.10"
 Distributions = "0.25"
-DocStringExtensions = "0.8"
+DocStringExtensions = "0.8, 0.9"
 ForwardDiff = "0.10"
 LabelledArrays = "1"
 MCMCChains = "5"
