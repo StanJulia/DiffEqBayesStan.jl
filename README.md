@@ -8,7 +8,10 @@
 
 This repository is a set of extension functionality for estimating the parameters of differential equations using Stan-based Bayesian methods as available in [StanSample.jl](https://github.com/StanJulia/StanSample.jl) to perform a Bayesian estimation of a differential equation problem specified via the [DifferentialEquations.jl](https://github.com/SciML/DifferentialEquations.jl) interface.
 
-This repository is a direct simplification of [DiffEqBayes.jl](). While DiffEqBayes provides and shows how to run the same problem on multiple mcmc implementations available in Julia, this packages only supports Stan.
+This repository is a simplification of [DiffEqBayes.jl](). While DiffEqBayes provides and shows how to run the same problem on multiple mcmc implementations available in Julia, this packages only supports Stan.
+
+Version v3.0.0 is a breaking change with v2.x.x in that is assumes cmdstan has been compiled with `STAN_THREADS=true`.
+By default 8 CPP threads are used and 4 CPP chains.
 
 To begin you first need to add this repository using the following command:
 

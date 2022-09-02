@@ -66,8 +66,14 @@ diffeq_string = "
 
 bayesian_result_stan = 
   stan_inference(prob_ode_fitzhughnagumo,t,data,priors;
-    num_threads=4, num_cpp_chains=4, num_chains=2, num_samples=1250, output_format = :dataframe,
-    diffeq_string, tmpdir);
+    #use_cpp_chains=true,
+    #num_threads=8, 
+    #num_cpp_chains=4, 
+    #num_chains=4, 
+    num_samples=2500, 
+    output_format = :dataframe,
+    diffeq_string,
+    tmpdir);
 
 describe(bayesian_result_stan.chains) |> display
 println()
@@ -76,9 +82,11 @@ st =  read_samples(bayesian_result_stan.model, :table)
 describe(DataFrame(st)) |> display
 println()
 
+#=
 ka = read_samples(bayesian_result_stan.model, :keyedarray)
 ka |> display
 println()
 
 chns = read_samples(bayesian_result_stan.model, :mcmcchains)
 plot(chns)
+=#

@@ -57,8 +57,12 @@ function stan_inference(prob::DiffEqBase.DEProblem,
     # Stan differential equation function keyword arguments
     alg = :rk45, reltol=1e-3, abstol=1e-6, maxiter=Int(1e5), 
     # stan_sample keyword arguments
-    num_samples=1000, num_warmups=1000, 
-    num_cpp_chains=1, num_chains=1, num_threads=1,
+    use_cpp_chains=true,
+    num_samples=1000,
+    num_warmups=1000, 
+    #num_cpp_chains=1,
+    num_chains=4, 
+    num_threads=8,
     # read_samples arguments
     output_format=:mcmcchains,
     # read_summary arguments
@@ -198,8 +202,9 @@ function stan_inference(prob::DiffEqBase.DEProblem,
         "internal_var___u" => view(data, :, 1:length(t)), 
         "t0" => prob.tspan[1], "ts" => t)
 
-    @time rc = stan_sample(stanmodel; data, num_threads, num_cpp_chains, 
-        num_samples, num_warmups, num_chains)
+    @time rc = stan_sample(stanmodel; data, 
+        use_cpp_chains, num_threads, num_chains, 
+        num_samples, num_warmups)
 
     if success(rc)
         return StanResult(stanmodel, rc, read_samples(stanmodel, output_format))
