@@ -6,7 +6,7 @@ println("One parameter case")
 
 ProjDir = @__DIR__
 tmpdir = joinpath(ProjDir, "tmp")
-#isdir(joinpath(ProjDir, "tmp")) && rm(tmpdir; recursive=true)
+isdir(joinpath(ProjDir, "tmp")) && rm(tmpdir; recursive=true)
 
 
 f1 = @ode_def begin
@@ -37,3 +37,12 @@ br2 = stan_inference(prob1,t,data,priors;
   tmpdir)
 
 @test mean(get(br2.chains,:theta_1)[1]) ≈ 1.5 atol=3e-1
+
+br3 = stan_inference(prob1,t,data,priors;
+  #num_threads=8,
+  #use_cpp_chains=false,
+  #num_chains=4,
+  likelihood=Normal,
+  tmpdir)
+
+@test mean(get(br3.chains,:theta_1)[1]) ≈ 1.5 atol=3e-1

@@ -1,12 +1,6 @@
-struct StanResult{M,R,C}
-    model::M
-    return_code::R
-    chains::C
-end
-
-function Base.show(io::IO, mime::MIME"text/plain", res::StanResult)
-    show(io, mime, res.chains)
-end
+using DocStringExtensions
+import DiffEqBayesStan: stan_string
+import StanSample: SampleModel
 
 struct StanODEData end
 
@@ -48,26 +42,56 @@ function generate_theta(n,priors)
     return theta
 end
 
-function stan_inference(prob::DiffEqBase.DEProblem,
+"""
+
+Create and compile a SampleModel based on DiffEqBayes.
+
+$(SIGNATURES)
+
+For more details, use extended help.
+
+# Extended help
+
+### Required positional arguments
+```julia
+* `prob::::DiffEqBase.DEProblem` # Name for the model
+* `t` # Time steps
+* `data` # Data for DiffEq model
+```
+
+### Optional positional arguments
+```julia
+* `priors=nothing`
+* `SampleModel=nothing`
+```
+
+### Keyword arguments
+```julia
+* `likelihood=Normal`
+* `vars=(StanODEData(), InverseGamma(3,3))`
+* `sample_u0=false`
+* `save_idxs=nothing`
+* `diffeq_string=nothing`
+* `alg = :rk45`
+* `reltol=1e-3`
+* `abstol=1e-6`
+* `maxiter=Int(1e5)`
+* `tmpdir=mktempdir()` # Directory where output files are stored
+```
+
+### Returns
+```julia
+* `(samplemodel, data)` # Tuple containing a SampleModel and date to be used in stan_sample(...)
+```
+"""
+function SampleModel(prob::DiffEqBase.DEProblem,
     # Positional arguments
     t, data, priors=nothing, stanmodel=nothing;
     # DiffEqBayes keyword arguments
     likelihood=Normal, vars=(StanODEData(), InverseGamma(3,3)),
     sample_u0=false, save_idxs=nothing, diffeq_string=nothing,
     # Stan differential equation function keyword arguments
-    alg = :rk45, reltol=1e-3, abstol=1e-6, maxiter=Int(1e5), 
-    # stan_sample keyword arguments
-    use_cpp_chains=true,
-    num_samples=1000,
-    num_warmups=1000, 
-    #num_cpp_chains=1,
-    num_chains=4, 
-    num_threads=8,
-    # read_samples arguments
-    output_format=:mcmcchains,
-    # read_summary arguments
-    print_summary=true,
-    # pass in existing tmpdir
+    alg = :rk45, reltol=1e-3, abstol=1e-6, maxiter=Int(1e5),
     tmpdir=mktempdir())
 
     save_idxs !== nothing && length(save_idxs) == 1 ? save_idxs = save_idxs[1] : save_idxs = save_idxs
@@ -135,26 +159,6 @@ function stan_inference(prob::DiffEqBase.DEProblem,
             integral_string = "u_hat = $algorithm(sho, u0, t0, ts, $reltol, $abstol, $maxiter, $(rstrip(theta_names,',')));"
         end
 
-        #=
-        binsearch_string = """
-            int bin_search(real x, int min_val, int max_val){
-                int range = (max_val - min_val + 1) / 2;
-                int mid_pt = min_val + range;
-                int out;
-                while (range > 0) {
-                    if (x == mid_pt) {
-                        out = mid_pt;
-                        range = 0;
-                    } else {
-                        range = (range + 1) / 2;
-                        mid_pt = x > mid_pt ? mid_pt + range: mid_pt - range;
-                    }
-            }
-            return out;
-        }
-        """
-        =#
-
         if isnothing(diffeq_string)
             diffeq_string = ModelingToolkit.build_function(
                 ModelingToolkit.equations(sys),
@@ -203,18 +207,6 @@ function stan_inference(prob::DiffEqBase.DEProblem,
         "internal_var___u" => view(data, :, 1:length(t)), 
         "t0" => prob.tspan[1], "ts" => t)
 
-    @time rc = stan_sample(stanmodel; data, 
-        use_cpp_chains, num_threads, num_chains, 
-        num_samples, num_warmups)
-
-    if success(rc)
-        return StanResult(
-            stanmodel, 
-            rc, 
-            read_samples(stanmodel, output_format)
-        )
-    else
-        rc.err
-    end
+    return (stanmodel, data)
 
 end
