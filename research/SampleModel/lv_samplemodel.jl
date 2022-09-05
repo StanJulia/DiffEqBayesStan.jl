@@ -1,7 +1,7 @@
 using DiffEqBayesStan, OrdinaryDiffEq, ParameterizedFunctions,
-      RecursiveArrayTools, Distributions, Test
+      RecursiveArrayTools, Distributions, StanSample, Test
 
-println("DiffEqBayes based Lottka_Volterra SampleModel test")
+println("DiffEqBayes based LV SampleModel test")
 
 ProjDir = @__DIR__
 tmpdir = joinpath(ProjDir, "tmp")
@@ -20,12 +20,23 @@ prob1 = ODEProblem(f1,u0,tspan,p)
 sol = solve(prob1,Tsit5())
 t = collect(range(1,stop=10,length=50))
 randomized = VectorOfArray([(sol(t[i]) + .01randn(2)) for i in 1:length(t)])
-de_data = convert(Array, randomized)
+deb_data = convert(Array, randomized)
 priors = [truncated(Normal(1.5,0.1),1.0,1.8)]
 
-lv_sm, data = SampleModel(prob1, t, de_data, priors;
+println("\nCompile Stan model\n")
+@time lv_sm, data = SampleModel(prob1, t, deb_data, priors;
   likelihood=Normal, tmpdir)
 
+println("\nStart sampling\n")
+@time rc = stan_sample(lv_sm; data, 
+    use_cpp_chains=true,
+    num_samples=1000,
+    num_warmups=1000, 
+    num_chains=4, 
+    num_threads=8
+)
+
+println("\nStart sampling (second time)\n")
 @time rc = stan_sample(lv_sm; data, 
     use_cpp_chains=true,
     num_samples=1000,

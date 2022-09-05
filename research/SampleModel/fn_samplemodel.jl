@@ -1,7 +1,9 @@
 # title: Fitzhugh-Nagumo Bayesian Parameter Estimation Benchmarks
 # author: Vaibhav Dixit, Chris Rackauckas
 
-using DiffEqBayesStan, StatsPlots
+println("DiffEqBayes based FN SampleModel test")
+
+using DiffEqBayesStan, StanSample, StatsPlots
 using DataFrames, Random
 
 using OrdinaryDiffEq, RecursiveArrayTools, Distributions
@@ -27,14 +29,7 @@ sol = solve(prob_ode_fitzhughnagumo, Tsit5())
 
 t = collect(range(1,stop=10,length=10))
 sig = 0.20
-de_data = convert(Array, VectorOfArray([(sol(t[i]) + sig*randn(2)) for i in 1:length(t)]))
-
-
-### Plot of the data and the solution.
-
-scatter(t, de_data[1,:])
-scatter!(t, de_data[2,:])
-plot!(sol)
+deb_data = convert(Array, VectorOfArray([(sol(t[i]) + sig*randn(2)) for i in 1:length(t)]))
 
 ### Priors for the parameters which will be passed for the Bayesian Inference
 
@@ -62,11 +57,17 @@ diffeq_string = "
 }
 "
 
-fn_sm, data = SampleModel(prob_ode_fitzhughnagumo,t,de_data,priors;
+println("\nCompile Stan model\n")
+@time fn_sm, data = SampleModel(prob_ode_fitzhughnagumo,t,deb_data,priors;
     diffeq_string, tmpdir);
 
+println("\nStart sampling\n")
 @time rc = stan_sample(fn_sm; num_samples=2500, data)
 
+println("\nStart sampling (second time)\n")
+@time rc = stan_sample(fn_sm; num_samples=2500, data)
+
+println()
 if success(rc)
   df = read_summary(fn_sm)
   println()
