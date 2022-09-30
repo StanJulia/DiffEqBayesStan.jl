@@ -1,7 +1,7 @@
 using DiffEqBayesStan, OrdinaryDiffEq, ParameterizedFunctions,
       RecursiveArrayTools, Distributions, StanSample, Test
 
-println("DiffEqBayes based LV SampleModel test")
+println("\nDiffEqBayes based LV SampleModel test")
 
 ProjDir = @__DIR__
 tmpdir = joinpath(ProjDir, "tmp")
@@ -50,3 +50,4 @@ if success(rc)
 end
 
 lv_df[8:end, [1, 2, 3, 4, 8, 9, 10]] |> display
+println()

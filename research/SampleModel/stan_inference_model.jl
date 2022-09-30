@@ -54,6 +54,7 @@ For more details, use extended help.
 
 ### Required positional arguments
 ```julia
+* `name::AbstractString` # Name for model
 * `prob::::DiffEqBase.DEProblem` # Name for the model
 * `t` # Time steps
 * `data` # Data for DiffEq model
@@ -84,7 +85,9 @@ For more details, use extended help.
 * `(samplemodel, data)` # Tuple containing a SampleModel and date to be used in stan_sample(...)
 ```
 """
-function SampleModel(prob::DiffEqBase.DEProblem,
+function SampleModel(
+    name::AbstractString,
+    prob::DiffEqBase.DEProblem,
     # Positional arguments
     t, data, priors=nothing, stanmodel=nothing;
     # DiffEqBayes keyword arguments
@@ -198,7 +201,7 @@ function SampleModel(prob::DiffEqBase.DEProblem,
         ";
 
         stanmodel = 
-            SampleModel("pem", parameter_estimation_model, tmpdir)
+            SampleModel(name, parameter_estimation_model, tmpdir)
 
     end
 

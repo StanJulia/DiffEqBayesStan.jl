@@ -1,7 +1,7 @@
 # title: Fitzhugh-Nagumo Bayesian Parameter Estimation Benchmarks
 # author: Vaibhav Dixit, Chris Rackauckas
 
-println("DiffEqBayes based FN SampleModel test")
+println("\nDiffEqBayes based FN SampleModel test")
 
 using DiffEqBayesStan, StanSample
 using DataFrames, Random
@@ -75,3 +75,4 @@ if success(rc)
   println()
   df[8:end, [1, 2, 3, 4, 8, 9, 10]] |> display
 end
+println()

@@ -30,7 +30,7 @@ module DiffEqBayesStan
     ```
 
     Note that in the projects, e.g. StatisticalRethinkingStan.jl and StatisticalRethinkingTuring.jl, the
-    DrWatson approach is a better choics, i.e: `sr_datadir(filename)`
+    DrWatson approach is a better choice, i.e: `sr_datadir(filename)`
 
     """
     debs_path(parts...) = normpath(joinpath(src_path, parts...))
