@@ -208,10 +208,10 @@ function stan_string(p::Union{Type{VonMises},VonMises})
 	end
 end
 function stan_string(p::Truncated)
-	p_lower = p.lower
-	p_upper = p.upper
-	lower = p_lower === nothing || isinf(p_lower) ? "" : p_lower
-	upper = p_upper === nothing || isinf(p_upper) ? "" : p_upper
-	raw_string = stan_string(p.untruncated)
-	return string(raw_string," T[$lower,$upper]")
+	min_truncated, max_truncated = extrema(p)
+    min_untruncated, max_untruncated = extrema(p.untruncated)
+    lower = min_truncated == min_untruncated ? "" : string(min_truncated)
+    upper = max_truncated == max_untruncated ? "" : string(max_truncated)
+    raw_string = stan_string(p.untruncated)
+    return string(raw_string, " T[", lower, ",", upper, "]")
 end
