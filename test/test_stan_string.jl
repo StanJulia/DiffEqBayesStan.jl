@@ -1,4 +1,5 @@
-using Distributions, DiffEqBayesStan
+using Distributions
+using DiffEqBayesStan
 
 println("Starting the test")
 @test DiffEqBayesStan.stan_string(Bernoulli(1)) == "bernoulli(1.0)"
@@ -76,34 +77,34 @@ println("Starting the test")
 @test DiffEqBayesStan.stan_string(VonMises(0,2)) == "von_mises(0.0, 2.0)"
 @test DiffEqBayesStan.stan_string(VonMises) == "von_mises"
 
-@test DiffEqBayes.stan_string(truncated(Normal(1, 2), -1, 3)) ==
+@test DiffEqBayesStan.stan_string(truncated(Normal(1, 2), -1, 3)) ==
       "normal(1.0, 2.0) T[-1.0,3.0]"
-@test DiffEqBayes.stan_string(truncated(Normal(1, 2); lower = -1, upper = 3)) ==
+@test DiffEqBayesStan.stan_string(truncated(Normal(1, 2); lower = -1, upper = 3)) ==
       "normal(1.0, 2.0) T[-1.0,3.0]"
-@test DiffEqBayes.stan_string(truncated(Normal(1, 2), -Inf, 3)) ==
+@test DiffEqBayesStan.stan_string(truncated(Normal(1, 2), -Inf, 3)) ==
       "normal(1.0, 2.0) T[,3.0]"
-@test DiffEqBayes.stan_string(truncated(Normal(1, 2), nothing, 3)) ==
+@test DiffEqBayesStan.stan_string(truncated(Normal(1, 2), nothing, 3)) ==
       "normal(1.0, 2.0) T[,3.0]"
-@test DiffEqBayes.stan_string(truncated(Normal(1, 2); upper = 3)) ==
+@test DiffEqBayesStan.stan_string(truncated(Normal(1, 2); upper = 3)) ==
       "normal(1.0, 2.0) T[,3.0]"
-@test DiffEqBayes.stan_string(truncated(Normal(1, 2), -1, Inf)) ==
+@test DiffEqBayesStan.stan_string(truncated(Normal(1, 2), -1, Inf)) ==
       "normal(1.0, 2.0) T[-1.0,]"
-@test DiffEqBayes.stan_string(truncated(Normal(1, 2), -1, nothing)) ==
+@test DiffEqBayesStan.stan_string(truncated(Normal(1, 2), -1, nothing)) ==
       "normal(1.0, 2.0) T[-1.0,]"
-@test DiffEqBayes.stan_string(truncated(Normal(1, 2); lower = -1)) ==
+@test DiffEqBayesStan.stan_string(truncated(Normal(1, 2); lower = -1)) ==
       "normal(1.0, 2.0) T[-1.0,]"
 
-@test DiffEqBayes.stan_string(truncated(Beta(2, 3), 0.1, 0.4)) ==
+@test DiffEqBayesStan.stan_string(truncated(Beta(2, 3), 0.1, 0.4)) ==
     "beta(2.0, 3.0) T[0.1,0.4]"
-@test DiffEqBayes.stan_string(truncated(Beta(2, 3); lower = 0.1, upper = 0.4)) ==
+@test DiffEqBayesStan.stan_string(truncated(Beta(2, 3); lower = 0.1, upper = 0.4)) ==
       "beta(2.0, 3.0) T[0.1,0.4]"
-@test DiffEqBayes.stan_string(truncated(Beta(2, 3), 0, 0.4)) == "beta(2.0, 3.0) T[,0.4]"
-@test DiffEqBayes.stan_string(truncated(Beta(2, 3), nothing, 0.4)) ==
+@test DiffEqBayesStan.stan_string(truncated(Beta(2, 3), 0, 0.4)) == "beta(2.0, 3.0) T[,0.4]"
+@test DiffEqBayesStan.stan_string(truncated(Beta(2, 3), nothing, 0.4)) ==
       "beta(2.0, 3.0) T[,0.4]"
-@test DiffEqBayes.stan_string(truncated(Beta(2, 3); upper = 0.4)) ==
+@test DiffEqBayesStan.stan_string(truncated(Beta(2, 3); upper = 0.4)) ==
       "beta(2.0, 3.0) T[,0.4]"
-@test DiffEqBayes.stan_string(truncated(Beta(2, 3), 0.1, 1)) == "beta(2.0, 3.0) T[0.1,]"
-@test DiffEqBayes.stan_string(truncated(Beta(2, 3), 0.1, nothing)) ==
+@test DiffEqBayesStan.stan_string(truncated(Beta(2, 3), 0.1, 1)) == "beta(2.0, 3.0) T[0.1,]"
+@test DiffEqBayesStan.stan_string(truncated(Beta(2, 3), 0.1, nothing)) ==
       "beta(2.0, 3.0) T[0.1,]"
-@test DiffEqBayes.stan_string(truncated(Beta(2, 3); lower = 0.1)) ==
+@test DiffEqBayesStan.stan_string(truncated(Beta(2, 3); lower = 0.1)) ==
       "beta(2.0, 3.0) T[0.1,]"
