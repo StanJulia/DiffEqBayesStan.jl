@@ -188,16 +188,16 @@ function SampleModel(
             data {
                 vector[$length_of_y] u0;
                 int<lower=1> T;
-                real internal_var___u[T,$(length(save_idxs))];
+                array[T,$(length(save_idxs))] real internal_var___u;
                 real t0;
-                real ts[T];
+                array[T] real ts;
             }
             parameters {
                 $setup_params
                 $theta_string
             }
             model{
-                vector[$length_of_y] u_hat[T];
+                array[T] vector[$length_of_y] u_hat;
                 $hyper_params
                 $priors_string
                 $integral_string
@@ -348,16 +348,16 @@ function stan_inference(prob::DiffEqBase.DEProblem,
             data {
                 vector[$length_of_y] u0;
                 int<lower=1> T;
-                real internal_var___u[T,$(length(save_idxs))];
+                array[T,$(length(save_idxs))] real internal_var___u;
                 real t0;
-                real ts[T];
+                array[T] real ts;
             }
             parameters {
                 $setup_params
                 $theta_string
             }
             model{
-                vector[$length_of_y] u_hat[T];
+                array[T] vector[$length_of_y] u_hat;
                 $hyper_params
                 $priors_string
                 $integral_string
