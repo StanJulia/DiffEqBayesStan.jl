@@ -172,7 +172,7 @@ function SampleModel(
         if isnothing(diffeq_string)
             diffeq_string = ModelingToolkit.build_function(
                 ModelingToolkit.equations(sys),
-                ModelingToolkit.states(sys),
+                ModelingToolkit.unknowns(sys),
                 ModelingToolkit.parameters(sys),
                 ModelingToolkit.get_iv(sys);
                 expression = Val{true},
@@ -332,7 +332,7 @@ function stan_inference(prob::DiffEqBase.DEProblem,
         if isnothing(diffeq_string)
             diffeq_string = ModelingToolkit.build_function(
                 ModelingToolkit.equations(sys),
-                ModelingToolkit.states(sys),
+                ModelingToolkit.unknowns(sys),
                 ModelingToolkit.parameters(sys),
                 ModelingToolkit.get_iv(sys);
                 expression = Val{true},
